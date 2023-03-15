@@ -1,17 +1,15 @@
-FROM alpine:3
-
-LABEL maintainer="ComputeStacks <hello@computestacks.com>"
+FROM debian:bookworm
 
 RUN set -eux; \
-    \
-    apk add --no-cache \
-            borgbackup \
-            openrc \
-            ca-certificates \
-            su-exec \
+    apt-get update \
+    && apt-get -y install --no-install-recommends \
+        openssh-client \
+        borgbackup \
+        openrc \
     ; \
-    sed -i 's/^\(tty\d\:\:\)/#\1/g' /etc/inittab \
-    && sed -i \
+    apt-get clean; \
+    rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*; \
+    sed -i \
         # Change subsystem type to "docker"
         -e 's/#rc_sys=".*"/rc_sys="docker"/g' \
         # Allow all variables through
@@ -23,14 +21,15 @@ RUN set -eux; \
         -e 's/#rc_provide=".*"/rc_provide="loopback net"/g' \
         /etc/rc.conf \
     # Remove unnecessary services
-    && rm -f /etc/init.d/hwdrivers \
-            /etc/init.d/hwclock \
-            /etc/init.d/hwdrivers \
-            /etc/init.d/modules \
-            /etc/init.d/modules-load \
-            /etc/init.d/modloop \
+    && rm -f /etc/init.d/cgroups \
+            /etc/init.d/hwclock.sh \
     # Can't do cgroups
     && sed -i 's/\tcgroup_add_service/\t#cgroup_add_service/g' /lib/rc/sh/openrc-run.sh \
-    && sed -i 's/VSERVER/DOCKER/Ig' /lib/rc/sh/init.sh
+    && sed -i 's/VSERVER/DOCKER/Ig' /lib/rc/sh/init.sh \
+    ; \
+    echo "    ServerAliveInterval 10" >> /etc/ssh/ssh_config \
+    && echo "    ServerAliveCountMax 30" >> /etc/ssh/ssh_config \
+    && echo "    UserKnownHostsFile /dev/null" >> /etc/ssh/ssh_config \
+    && echo "    StrictHostKeyChecking no" >> /etc/ssh/ssh_config
 
-CMD ["/sbin/init"]
+CMD ["/sbin/openrc-init"]

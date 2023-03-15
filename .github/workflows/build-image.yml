@@ -39,6 +39,7 @@ jobs:
           context: .
           push: ${{ github.event_name != 'pull_request' }}
           tags: |
+            ghcr.io/${{ env.GH_REPO }}:1.4
             ghcr.io/${{ env.GH_REPO }}:latest
           cache-from: type=gha
           cache-to: type=gha,mode=max
