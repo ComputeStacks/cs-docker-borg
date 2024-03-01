@@ -6,4 +6,4 @@ help: ## Help
 .DEFAULT_GOAL := help
 
 build: ## Build local image
-	@docker build --platform linux/amd64 -t cs-borg:latest .
+	@docker build -t ghcr.io/computestacks/cs-docker-borg:1.4 .
